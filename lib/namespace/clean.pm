@@ -166,14 +166,15 @@ my $RemoveSubs = sub {
             }
         }
 
-        my ($scalar, $array, $hash, $io) = map {
-            $cleanee_stash->get_symbol($_ . $f)
+        my @symbols = map {
+            my $name = $_ . $f;
+            my $def = $cleanee_stash->get_symbol($name);
+            defined($def) ? [$name, $def] : ()
         } '$', '@', '%', '';
+
         $cleanee_stash->remove_glob($f);
-        for my $var (['$', $scalar], ['@', $array], ['%', $hash], ['', $io]) {
-            next unless defined $var->[1];
-            $cleanee_stash->add_symbol($var->[0] . $f, $var->[1]);
-        }
+
+        $cleanee_stash->add_symbol(@$_) for @symbols;
     }
 };
 
