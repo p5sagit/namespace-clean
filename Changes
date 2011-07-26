@@ -1,3 +1,6 @@
+        - Only invoke the deleted sub stashing if we run udner a debugger
+          (avoid runtime penalty of Sub::Name/Sub::Identify)
+
     [0.20]
         - Bump Package::Stash dependency to 0.22 to pull in a bugfix in
           Package::Stash::XS 0.19.
