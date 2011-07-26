@@ -1,6 +1,9 @@
         - Only invoke the deleted sub stashing if we run udner a debugger
           (avoid runtime penalty of Sub::Name/Sub::Identify)
         - Spellfixes (RT#54388)
+        - When B::Hooks::EndOfScope is not available, switch to a simple
+          tie() of %^H. While it can not 100% replace B::H::EOS, it does
+          everything n::c needs
 
     [0.20]
         - Bump Package::Stash dependency to 0.22 to pull in a bugfix in

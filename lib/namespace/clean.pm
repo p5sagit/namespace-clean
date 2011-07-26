@@ -5,10 +5,48 @@ use warnings;
 use strict;
 
 use vars qw( $STORAGE_VAR );
-use Package::Stash 0.22;
-use B::Hooks::EndOfScope 0.07;
+use Package::Stash;
 
 $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
+
+BEGIN {
+  if (eval {
+    require B::Hooks::EndOfScope;
+    B::Hooks::EndOfScope->VERSION('0.07');
+    1
+  } ) {
+    B::Hooks::EndOfScope->import('on_scope_end');
+  }
+  else {
+    eval <<'PP' or die $@;
+
+  {
+    package namespace::clean::_ScopeGuard;
+
+    sub arm { bless [ $_[1] ] }
+
+    sub DESTROY { $_[0]->[0]->() }
+  }
+
+  use Tie::Hash ();
+
+  sub on_scope_end (&) {
+    $^H |= 0x020000;
+
+    if( my $stack = tied( %^H ) ) {
+      push @$stack, namespace::clean::_ScopeGuard->arm(shift);
+    }
+    else {
+      tie( %^H, 'Tie::ExtraHash', namespace::clean::_ScopeGuard->arm(shift) );
+    }
+  }
+
+  1;
+
+PP
+
+  }
+}
 
 =head1 SYNOPSIS
 
@@ -350,6 +388,14 @@ will be stable in future releases.
 
 Just for completeness sake, if you want to remove the symbol completely,
 use C<undef> instead.
+
+=head1 CAVEATS
+
+This module is fully functional in a pure-perl environment, where
+L<Variable::Magic>, a L<B::Hooks::EndOfScope> dependency, may not be
+available. However in this case this module falls back to a
+L<tie()|perlfunc/tie> of L<%^H|perlvar/%^H>  which may or may not interfere
+with some crack you may be doing independently of namespace::clean.
 
 =head1 SEE ALSO
 
