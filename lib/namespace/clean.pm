@@ -69,9 +69,9 @@ be a module exporting an C<import> method along with some functions:
 If you just want to C<-except> a single sub, you can pass it directly.
 For more than one value you have to use an array reference.
 
-=head2 Explicitely removing functions when your scope is compiled
+=head2 Explicitly removing functions when your scope is compiled
 
-It is also possible to explicitely tell C<namespace::clean> what packages
+It is also possible to explicitly tell C<namespace::clean> what packages
 to remove when the surrounding scope has finished compiling. Here is an
 example:
 
