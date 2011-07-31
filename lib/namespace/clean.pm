@@ -7,12 +7,14 @@ use strict;
 use vars qw( $STORAGE_VAR );
 use Package::Stash;
 
+our $VERSION = '0.20';
+
 $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 
 BEGIN {
   if (eval {
     require B::Hooks::EndOfScope;
-    B::Hooks::EndOfScope->VERSION('0.07');
+    B::Hooks::EndOfScope->VERSION('0.07');  # when changing also change in Makefile.PL
     1
   } ) {
     B::Hooks::EndOfScope->import('on_scope_end');
@@ -161,7 +163,9 @@ option like this:
 If you don't care about C<namespace::clean>s discover-and-C<-except> logic, and
 just want to remove subroutines, try L</clean_subroutines>.
 
-=method clean_subroutines
+=head1 METHODS
+
+=head2 clean_subroutines
 
 This exposes the actual subroutine-removal logic.
 
@@ -245,7 +249,7 @@ sub clean_subroutines {
     $RemoveSubs->($cleanee, {}, @subs);
 }
 
-=method import
+=head2 import
 
 Makes a snapshot of the current defined functions and installs a
 L<B::Hooks::EndOfScope> hook in the current scope to invoke the cleanups.
@@ -310,7 +314,7 @@ sub import {
     }
 }
 
-=method unimport
+=head2 unimport
 
 This method will be called when you do a
 
@@ -338,7 +342,7 @@ sub unimport {
     return 1;
 }
 
-=method get_class_store
+=head2 get_class_store
 
 This returns a reference to a hash in a passed package containing
 information about function names included and excluded from removal.
@@ -354,7 +358,7 @@ sub get_class_store {
     return $stash->get_symbol($var);
 }
 
-=method get_functions
+=head2 get_functions
 
 Takes a class as argument and returns all currently defined functions
 in it as a hash reference with the function name as key and a typeglob
@@ -404,6 +408,34 @@ L<B::Hooks::EndOfScope>
 =head1 THANKS
 
 Many thanks to Matt S Trout for the inspiration on the whole idea.
+
+=head1 AUTHORS
+
+=over
+
+=item *
+
+Robert 'phaylon' Sedlacek <rs@474.at>
+
+=item *
+
+Florian Ragwitz <rafl@debian.org>
+
+=item *
+
+Jesse Luehrs <doy@tozt.net>
+
+=item *
+
+Peter Rabbitson <ribasushi@cpan.org>
+
+=back
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Robert 'phaylon' Sedlacek.
+
+This is free software; you can redistribute it and/or modify it under the same terms as the Perl 5 programming language system itself.
 
 =cut
 
