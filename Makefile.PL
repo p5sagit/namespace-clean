@@ -26,7 +26,7 @@ my %META_BITS = (
     # EUMM not supporting nested meta :(
     #repository => {
     #  type => 'git',
-    #  url => 'git://git.shadowcat.co.uk:p5sagit/namespace-clean.git',
+    #  url => 'git://git.shadowcat.co.uk/p5sagit/namespace-clean.git',
     #  web => 'http://git.shadowcat.co.uk/gitweb/gitweb.cgi?p=p5sagit/namespace-clean.git',
     #}
     #bugtracker => {
@@ -34,7 +34,7 @@ my %META_BITS = (
     #  web => 'http://rt.cpan.org/Public/Dist/Display.html?Name=namespace-clean',
     #},
 
-    repository => 'git://git.shadowcat.co.uk:p5sagit/namespace-clean.git',
+    repository => 'git://git.shadowcat.co.uk/p5sagit/namespace-clean.git',
     bugtracker => 'http://rt.cpan.org/Public/Dist/Display.html?Name=namespace-clean',
   },
 );
