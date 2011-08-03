@@ -13,6 +13,9 @@ $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 
 BEGIN {
 
+  use warnings;
+  use strict;
+
   # when changing also change in Makefile.PL
   my $b_h_eos_req = '0.07';
 
@@ -31,11 +34,17 @@ BEGIN {
   {
     package namespace::clean::_TieHintHash;
 
+    use warnings;
+    use strict;
+
     use base 'Tie::ExtraHash';
   }
 
   {
     package namespace::clean::_ScopeGuard;
+
+    use warnings;
+    use strict;
 
     sub arm { bless [ $_[1] ] }
 
