@@ -396,10 +396,13 @@ use C<undef> instead.
 =head1 CAVEATS
 
 This module is fully functional in a pure-perl environment, where
-L<Variable::Magic>, a L<B::Hooks::EndOfScope> dependency, may not be
-available. However in this case this module falls back to a
+L<B::Hooks::EndOfScope> (with the XS dependency L<Variable::Magic>), may
+not be available. However in this case this module falls back to a
 L<tie()|perlfunc/tie> of L<%^H|perlvar/%^H>  which may or may not interfere
 with some crack you may be doing independently of namespace::clean.
+
+If you want to ensure that your codebase is protected from this unlikely
+clash, you need to explicitly depend on L<B::Hooks::EndOfScope>.
 
 =head1 SEE ALSO
 
