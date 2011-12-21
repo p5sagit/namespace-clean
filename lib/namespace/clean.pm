@@ -246,10 +246,13 @@ my $DebuggerFixup = sub {
   if (RENAME_SUB) {
     if (! defined $sub_utils_loaded ) {
       $sub_utils_loaded = do {
+
+        # when changing version also change in Makefile.PL
         my $sn_ver = 0.04;
         eval { require Sub::Name; Sub::Name->VERSION($sn_ver) }
           or die "Sub::Name $sn_ver required when running under -d or equivalent: $@";
 
+        # when changing version also change in Makefile.PL
         my $si_ver = 0.04;
         eval { require Sub::Identify; Sub::Identify->VERSION($si_ver) }
           or die "Sub::Identify $si_ver required when running under -d or equivalent: $@";

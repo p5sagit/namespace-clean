@@ -1,5 +1,7 @@
         - Limit the debugger workarounds to perls between 5.8.8 and 5.14,
           extend debugger support to all perl versions (FC) (RT#69862)
+        - If possible, automatically install (but not load) the debugger
+          workaround libraries on perls between 5.8.8 and 5.14 (RT#72368)
         - Add back dropped NAME section (RT#70259)
 
     [0.21]
