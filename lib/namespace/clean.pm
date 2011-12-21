@@ -91,6 +91,10 @@ PP
   }
 }
 
+=head1 NAME
+
+namespace::clean - Keep imports and functions out of your namespace
+
 =head1 SYNOPSIS
 
   package Foo;

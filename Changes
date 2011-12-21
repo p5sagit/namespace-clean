@@ -1,3 +1,5 @@
+        - Add back dropped NAME section (RT#70259)
+
     [0.21]
         - When using the tie() fallback ensure we do not obliterate a
           foreign tie()
