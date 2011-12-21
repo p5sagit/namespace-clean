@@ -19,7 +19,7 @@ BEGIN {
   # when changing also change in Makefile.PL
   my $b_h_eos_req = '0.07';
 
-  if (eval {
+  if (! $ENV{NAMESPACE_CLEAN_USE_PP} and eval {
     require B::Hooks::EndOfScope;
     B::Hooks::EndOfScope->VERSION($b_h_eos_req);
     1
