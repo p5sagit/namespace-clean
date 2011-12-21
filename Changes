@@ -1,3 +1,4 @@
+        - More robust handling of the tied %^H in pure perl mode (RT#73402)
         - Limit the debugger workarounds to perls between 5.8.8 and 5.14,
           extend debugger support to all perl versions (FC) (RT#69862)
         - If possible, automatically install (but not load) the debugger

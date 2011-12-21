@@ -80,7 +80,10 @@ EOE
       push @$stack, namespace::clean::_ScopeGuard->arm(shift);
     }
     else {
+      my %old_contents = %^H;
+      %^H = ();
       tie( %^H, 'namespace::clean::_TieHintHash', namespace::clean::_ScopeGuard->arm(shift) );
+      $^H{$_} = $old_contents{$_} for keys %old_contents;
     }
   }
 
