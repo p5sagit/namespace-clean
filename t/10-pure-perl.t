@@ -2,6 +2,9 @@ use strict;
 use warnings;
 use Test::More;
 
+plan skip_all => "PP tests already executed"
+  if $ENV{NAMESPACE_CLEAN_USE_PP};
+
 eval { require B::Hooks::EndOfScope }
   or plan skip_all => "PP tests already executed";
 
