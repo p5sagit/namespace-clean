@@ -1,3 +1,7 @@
+        - Simplify the >= 5.10 PP variant even more - move the hook from
+          DESTROY into DELETE
+        - Force explicit callback invocation order on 5.8 PP
+
     [0.21_02]
         - Replace the %^H tie approach with fieldhashes, fixes all known
           corner cases and caveats on supported perls >= 5.8.1 (FC)
