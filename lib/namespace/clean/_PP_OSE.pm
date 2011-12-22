@@ -15,22 +15,15 @@ use Hash::Util::FieldHash 'fieldhash';
 #
 # Therefore the DELETE of a tied fieldhash containing a %^H reference will
 # be the hook to fire all our callbacks.
-#
-# The SUPER:: gimmick is there to ensure the fieldhash is cleaned up in a
-# timely manner. When you call delete() in non-void context, you get a mortal
-# scalar whose reference count decreases at the end of the current statement.
-# During scope exit, ‘statement’ is not clearly defined, so more scope
-# unwinding could happen before the mortal gets freed. Forcing the DELETE
-# in void context localizes the life of the mortal scalar.
 
 fieldhash my %hh;
 {
   package namespace::clean::_TieHintHashFieldHash;
   use base 'Tie::StdHash';
   sub DELETE {
-    $_->() for @{ $_[0]->{$_[1]} };
-    shift->SUPER::DELETE(@_);
-    1; # put the preceding statement in void context so the free is immediate
+    my $ret = shift->SUPER::DELETE(@_);
+    $_->() for @$ret;
+    $ret;
   }
 }
 
