@@ -18,7 +18,8 @@ use Hash::Util::FieldHash 'fieldhash';
 
 fieldhash my %hh;
 {
-  package namespace::clean::_TieHintHashFieldHash;
+  package # hide from pause too
+    namespace::clean::_TieHintHashFieldHash;
   use base 'Tie::StdHash';
   sub DELETE {
     my $ret = shift->SUPER::DELETE(@_);
