@@ -227,9 +227,16 @@ it is your responsibility to make sure it runs at that time.
 =cut
 
 # Constant to optimise away the unused code branches
-use constant RENAME_SUB => $] > 5.008_008_9 && $] < 5.013_006_1;
-{ no strict; delete ${__PACKAGE__."::"}{RENAME_SUB} }
+use constant FIXUP_NEEDED => $] < 5.015_005_1;
+use constant FIXUP_RENAME_SUB => $] > 5.008_008_9 && $] < 5.013_006_1;
+{
+  no strict;
+  delete ${__PACKAGE__."::"}{FIXUP_NEEDED};
+  delete ${__PACKAGE__."::"}{FIXUP_RENAME_SUB};
+}
 
+# Debugger fixup necessary before perl 5.15.5
+#
 # In perl 5.8.9-5.12, it assumes that sub_fullname($sub) can
 # always be used to find the CV again.
 # In perl 5.8.8 and 5.14, it assumes that the name of the glob
@@ -246,7 +253,7 @@ my $sub_utils_loaded;
 my $DebuggerFixup = sub {
   my ($f, $sub, $cleanee_stash, $deleted_stash) = @_;
 
-  if (RENAME_SUB) {
+  if (FIXUP_RENAME_SUB) {
     if (! defined $sub_utils_loaded ) {
       $sub_utils_loaded = do {
 
@@ -291,12 +298,14 @@ my $RemoveSubs = sub {
           or next SYMBOL;
 
         my $need_debugger_fixup =
+          FIXUP_NEEDED
+            &&
           $^P
             &&
           ref(my $globref = \$cleanee_stash->namespace->{$f}) eq 'GLOB'
         ;
 
-        if ($need_debugger_fixup) {
+        if (FIXUP_NEEDED && $need_debugger_fixup) {
           # convince the Perl debugger to work
           # see the comment on top of $DebuggerFixup
           $DebuggerFixup->(
@@ -318,7 +327,7 @@ my $RemoveSubs = sub {
         # if this perl needs no renaming trick we need to
         # rename the original glob after the fact
         # (see commend of $DebuggerFixup
-        if (!RENAME_SUB && $need_debugger_fixup) {
+        if (FIXUP_NEEDED && !FIXUP_RENAME_SUB && $need_debugger_fixup) {
           *$globref = $deleted_stash->namespace->{$f};
         }
 
