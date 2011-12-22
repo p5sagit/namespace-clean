@@ -1,4 +1,6 @@
-        - Compile away the debugger fixup on perls >= 5.15.5
+        - Replace the %^H tie approach with fieldhashes, fixes all known
+          corner cases and caveats on supported perls >= 5.8.1 (FC)
+        - Compile away the debugger fixup on perls >= 5.15.5 (FC)
 
     [0.21_01]
         - More robust handling of the tied %^H in pure perl mode (RT#73402)

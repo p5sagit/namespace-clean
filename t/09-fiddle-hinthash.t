@@ -24,10 +24,15 @@ use Test::More 0.88;
   use namespace::clean;
 
   BEGIN {
-    Test::More::is( $^H{'foo'}, 'bar', 'hinthash intact' );
+    Test::More::is( $^H{'foo'}, 'bar', 'compiletime hinthash intact after n::c' );
   }
 
   {
+    BEGIN {
+      Test::More::is(
+        $^H{'foo'}, 'bar', 'compile-time hinthash intact in inner scope'
+      );
+    }
     1;
   }
 
