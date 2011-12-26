@@ -6,7 +6,7 @@ use strict;
 use vars qw( $STORAGE_VAR );
 use Package::Stash;
 
-our $VERSION = '0.21_02';
+our $VERSION = '0.22';
 
 $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 
@@ -22,7 +22,7 @@ BEGIN {
   } ) {
     B::Hooks::EndOfScope->import('on_scope_end');
   }
-  elsif ($] < 5.009_003_9) {
+  elsif ($] < 5.009_003_1) {
     require namespace::clean::_PP_OSE_5_8;
     *on_scope_end = \&namespace::clean::_PP_OSE_5_8::on_scope_end;
   }

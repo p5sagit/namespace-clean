@@ -1,3 +1,4 @@
+    [0.22] (official fix of all the %^H ickyness)
         - Simplify the >= 5.10 PP variant even more - move the hook from
           DESTROY into DELETE
         - Force explicit callback invocation order on 5.8 PP
