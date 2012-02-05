@@ -1,3 +1,6 @@
+        - Fix failures on 5.13.6 due to incorrect version number threshold
+          (RT#74683)
+
     [0.22] (official fix of all the %^H ickyness)
         - Simplify the >= 5.10 PP variant even more - move the hook from
           DESTROY into DELETE

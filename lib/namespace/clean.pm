@@ -166,7 +166,7 @@ it is your responsibility to make sure it runs at that time.
 
 # Constant to optimise away the unused code branches
 use constant FIXUP_NEEDED => $] < 5.015_005_1;
-use constant FIXUP_RENAME_SUB => $] > 5.008_008_9 && $] < 5.013_006_1;
+use constant FIXUP_RENAME_SUB => $] > 5.008_008_9 && $] < 5.013_005_1;
 {
   no strict;
   delete ${__PACKAGE__."::"}{FIXUP_NEEDED};
