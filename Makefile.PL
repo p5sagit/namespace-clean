@@ -16,7 +16,7 @@ my %RUN_DEPS = (
 );
 
 my %OPT_RUN_DEPS = (can_cc() ? (
-  'B::Hooks::EndOfScope' => '0.07', # when changing, also change $b_h_eos_req in namespace/clean.pm
+  'B::Hooks::EndOfScope' => '0.10', # when changing, also change $b_h_eos_req in namespace/clean.pm
 
   # these pieces are needed if using the debugger on the perl range
   ($] > 5.008_008_9 && $] < 5.013_005_1)

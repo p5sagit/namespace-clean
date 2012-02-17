@@ -13,7 +13,7 @@ $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 # FIXME - all of this buggery will migrate to B::H::EOS soon
 BEGIN {
   # when changing also change in Makefile.PL
-  my $b_h_eos_req = '0.07';
+  my $b_h_eos_req = '0.10';
 
   if (! $ENV{NAMESPACE_CLEAN_USE_PP} and eval {
     require B::Hooks::EndOfScope;
