@@ -6,7 +6,7 @@ use strict;
 use vars qw( $STORAGE_VAR );
 use Package::Stash;
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 

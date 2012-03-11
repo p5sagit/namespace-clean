@@ -1,7 +1,7 @@
+    [0.23]
         - Rely on B::Hooks::EndOfScope version 0.10 to fix issues with
           new Module::Runtime versions (>= 0.012) on perl 5.10 due
           to incorrect hook firing due to %^H localisation.
-
         - Fix failures on 5.13.6 due to incorrect version number threshold
           (RT#74683)
 
