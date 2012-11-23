@@ -15,6 +15,7 @@ my $has_d_h = eval { require Devel::Hide };
 use Config;
 use FindBin qw($Bin);
 use IPC::Open2 qw(open2);
+use File::Glob 'bsd_glob';
 
 # for the $^X-es
 $ENV{PERL5LIB} = join ($Config{path_sep}, @INC);
@@ -22,7 +23,7 @@ $ENV{PERL5LIB} = join ($Config{path_sep}, @INC);
 # rerun the tests under the assumption of pure-perl
 my $this_file = quotemeta(__FILE__);
 
-for my $fn (glob("$Bin/*.t")) {
+for my $fn (bsd_glob("$Bin/*.t")) {
   next if $fn =~ /${this_file}$/;
 
   local $ENV{DEVEL_HIDE_VERBOSE} = 0;

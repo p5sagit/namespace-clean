@@ -1,4 +1,6 @@
         - Properly skip debugger test when optional deps not available
+        - Make sure pure-perl tests pass correctly on space-containing
+          paths (RT#77528)
 
     [0.23]
         - Rely on B::Hooks::EndOfScope version 0.10 to fix issues with
