@@ -13,20 +13,14 @@ my %BUILD_DEPS = (
 
 my %RUN_DEPS = (
   'Package::Stash' => '0.23',
+  'B::Hooks::EndOfScope' => '0.12',
 );
 
-my %OPT_RUN_DEPS = (can_cc() ? (
-  'B::Hooks::EndOfScope' => '0.10', # when changing, also change $b_h_eos_req in namespace/clean.pm
-
-  # these pieces are needed if using the debugger on the perl range
-  ($] > 5.008_008_9 && $] < 5.013_005_1)
-    ? ( 'Sub::Name' => '0.04', 'Sub::Identify' => '0.04' ) # when changing, also change $sn_ver and $si_ver in namespace/clean.pm
-    : ()
-  ,
-
-  # make sure we smoke the pure-perl version
-  is_smoker() ? ( 'Devel::Hide' => 0 ) : (),
-) : () );
+# these pieces are needed if using the debugger on the perl range
+my %OPT_RUN_DEPS = ( $] > 5.008_008_9 and $] < 5.013_005_1 and can_xs() )
+  # when changing versions, also change $sn_ver and $si_ver in namespace/clean.pm
+  ? ( 'Sub::Name' => '0.04', 'Sub::Identify' => '0.04' ) : ()
+;
 
 my %META_BITS = (
   resources => {
@@ -53,8 +47,8 @@ my %WriteMakefileArgs = (
   'VERSION_FROM' => 'lib/namespace/clean.pm',
   'ABSTRACT' => 'Keep imports and functions out of your namespace',
   'AUTHOR' => 'Robert \'phaylon\' Sedlacek <rs@474.at>, Florian Ragwitz <rafl@debian.org>, Jesse Luehrs <doy@tozt.net>',
-
-  'PREREQ_PM' => {
+  'CONFIGURE_REQUIRES' => { 'ExtUtils::CBuilder' => 0.27 },
+   'PREREQ_PM' => {
     %RUN_DEPS, %OPT_RUN_DEPS,
     $mymeta_works ? () : (%BUILD_DEPS),
   },
@@ -100,6 +94,20 @@ delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
 
 WriteMakefile(%WriteMakefileArgs);
 
+# Secondary compile testing via ExtUtils::CBuilder
+sub can_xs {
+  # Do we have the configure_requires checker?
+  local $@;
+  eval "require ExtUtils::CBuilder;";
+  if (! $@ ) {
+    # They don't obey configure_requires, so it is
+    # someone old and delicate. Try to avoid hurting
+    # them by falling back to an older simpler test.
+    return can_cc();
+  }
+
+  return ExtUtils::CBuilder->new( quiet => 1 )->have_compiler;
+}
 
 # can we locate a (the) C compiler
 sub can_cc {
@@ -129,8 +137,4 @@ sub can_run {
   }
 
   return;
-}
-
-sub is_smoker {
-  return ( $ENV{AUTOMATED_TESTING} && ! $ENV{PERL5_CPANM_IS_RUNNING} && ! $ENV{RELEASE_TESTING} )
 }

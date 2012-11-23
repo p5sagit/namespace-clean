@@ -3,34 +3,12 @@ package namespace::clean;
 use warnings;
 use strict;
 
-use vars qw( $STORAGE_VAR );
 use Package::Stash;
 
 our $VERSION = '0.23';
+our $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 
-$STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
-
-# FIXME - all of this buggery will migrate to B::H::EOS soon
-BEGIN {
-  # when changing also change in Makefile.PL
-  my $b_h_eos_req = '0.10';
-
-  if (! $ENV{NAMESPACE_CLEAN_USE_PP} and eval {
-    require B::Hooks::EndOfScope;
-    B::Hooks::EndOfScope->VERSION($b_h_eos_req);
-    1
-  } ) {
-    B::Hooks::EndOfScope->import('on_scope_end');
-  }
-  elsif ($] < 5.009_003_1) {
-    require namespace::clean::_PP_OSE_5_8;
-    *on_scope_end = \&namespace::clean::_PP_OSE_5_8::on_scope_end;
-  }
-  else {
-    require namespace::clean::_PP_OSE;
-    *on_scope_end = \&namespace::clean::_PP_OSE::on_scope_end;
-  }
-}
+use B::Hooks::EndOfScope 'on_scope_end';
 
 =head1 NAME
 
