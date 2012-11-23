@@ -1,6 +1,15 @@
 use Test::More;
 
 BEGIN {
+  eval { require Sub::Name }
+    or plan skip_all => "Test requires Sub::Name";
+
+  eval { require Sub::Identify }
+    or plan skip_all => "Test requires Sub::Identify";
+}
+
+
+BEGIN {
   # shut up the debugger
   $ENV{PERLDB_OPTS} = 'NonStop';
 
