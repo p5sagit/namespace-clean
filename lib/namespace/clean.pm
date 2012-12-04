@@ -5,7 +5,7 @@ use strict;
 
 use Package::Stash;
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 our $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 
 use B::Hooks::EndOfScope 'on_scope_end';

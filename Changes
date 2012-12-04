@@ -1,3 +1,4 @@
+    [0.24]
         - Properly skip debugger test when optional deps not available
         - Make sure pure-perl tests pass correctly on space-containing
           paths (RT#77528)
