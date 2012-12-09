@@ -2,16 +2,28 @@ use strict;
 use warnings;
 use Test::More;
 
-plan skip_all => "PP tests already executed"
-  if $ENV{NAMESPACE_CLEAN_USE_PP};
+BEGIN {
+  plan skip_all => "PP tests already executed"
+    if $ENV{NAMESPACE_CLEAN_USE_PP};
 
-eval { require Variable::Magic }
-  or plan skip_all => "PP tests already executed";
+  plan skip_all => "B::Hooks::EndOfScope ($INC{'B/Hooks/EndOfScope.pm'}) loaded before the test even started >.<"
+    if $INC{'B/Hooks/EndOfScope.pm'};
 
-$ENV{B_HOOKS_ENDOFSCOPE_IMPLEMENTATION} = 'PP';
-require B::Hooks::EndOfScope;
-ok( ($INC{'B/Hooks/EndOfScope/PP.pm'} && ! $INC{'B/Hooks/EndOfScope/XS.pm'}),
-  'PP BHEOS loaded properly');
+  eval { require Variable::Magic }
+    or plan skip_all => "PP tests already executed";
+
+  $ENV{B_HOOKS_ENDOFSCOPE_IMPLEMENTATION} = 'PP';
+}
+
+use B::Hooks::EndOfScope 0.12;
+
+ok(
+  ($INC{'B/Hooks/EndOfScope/PP.pm'} && ! $INC{'B/Hooks/EndOfScope/XS.pm'}),
+  'PP BHEOS loaded properly'
+) || diag join "\n",
+  map { sprintf '%s => %s', $_, $INC{"B/Hooks/$_"} || 'undef' }
+  qw|EndOfScope.pm EndOfScope/XS.pm EndOfScope/PP.pm|
+;
 
 use Config;
 use FindBin qw($Bin);
