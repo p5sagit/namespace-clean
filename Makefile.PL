@@ -99,7 +99,7 @@ sub can_xs {
   # Do we have the configure_requires checker?
   local $@;
   eval "require ExtUtils::CBuilder;";
-  if (! $@ ) {
+  if ( $@ ) {
     # They don't obey configure_requires, so it is
     # someone old and delicate. Try to avoid hurting
     # them by falling back to an older simpler test.
