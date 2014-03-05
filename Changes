@@ -1,3 +1,7 @@
+    [0.25]
+        - Fix incorrect ExtUtils::CBuilder detection routine leading to
+          Makefile.PL crashes when EU::CB is not available
+
     [0.24]
         - Properly skip debugger test when optional deps not available
         - Make sure pure-perl tests pass correctly on space-containing
