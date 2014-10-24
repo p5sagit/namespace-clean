@@ -180,13 +180,9 @@ sub import {
             $store->{remove}{ $f } = 1;
         }
 
-        # register EOF handler on first call to import
-        unless ($store->{handler_is_installed}) {
-            on_scope_end {
-                $RemoveSubs->($cleanee, $store, keys %{ $store->{remove} });
-            };
-            $store->{handler_is_installed} = 1;
-        }
+        on_scope_end {
+            $RemoveSubs->($cleanee, $store, keys %{ $store->{remove} });
+        };
 
         return 1;
     }
