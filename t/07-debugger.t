@@ -12,10 +12,6 @@ BEGIN {
 BEGIN {
   # shut up the debugger
   $ENV{PERLDB_OPTS} = 'NonStop';
-
-  # work aroud the regex + P::S::XS buggery on
-  # < 5.8.6
-  require Package::Stash;
 }
 
 BEGIN {

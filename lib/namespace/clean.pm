@@ -3,13 +3,35 @@ package namespace::clean;
 use warnings;
 use strict;
 
-use Package::Stash;
-
 our $VERSION = '0.25';
 our $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 
 use B::Hooks::EndOfScope 'on_scope_end';
 
+# FIXME This is a crock of shit, needs to go away
+# currently here to work around https://rt.cpan.org/Ticket/Display.html?id=74151
+# kill with fire when PS::XS is *finally* fixed
+BEGIN {
+  my $provider;
+
+  if ( $] < 5.008007 ) {
+    require Package::Stash::PP;
+    $provider = 'Package::Stash::PP';
+  }
+  else {
+    require Package::Stash;
+    $provider = 'Package::Stash';
+  }
+  eval <<"EOS" or die $@;
+
+sub stash_for (\$) {
+  $provider->new(\$_[0]);
+}
+
+1;
+
+EOS
+}
 
 # Constant to optimise away the unused code branches
 use constant FIXUP_NEEDED => $] < 5.015_005_1;
@@ -70,7 +92,7 @@ my $DebuggerFixup = sub {
 my $RemoveSubs = sub {
     my $cleanee = shift;
     my $store   = shift;
-    my $cleanee_stash = Package::Stash->new($cleanee);
+    my $cleanee_stash = stash_for($cleanee);
     my $deleted_stash;
 
   SYMBOL:
@@ -97,7 +119,7 @@ my $RemoveSubs = sub {
             $f,
             $sub,
             $cleanee_stash,
-            $deleted_stash ||= Package::Stash->new("namespace::clean::deleted::$cleanee"),
+            $deleted_stash ||= stash_for("namespace::clean::deleted::$cleanee"),
           );
         }
 
@@ -155,7 +177,7 @@ sub import {
         # calling class, all current functions and our storage
         my $functions = $pragma->get_functions($cleanee);
         my $store     = $pragma->get_class_store($cleanee);
-        my $stash     = Package::Stash->new($cleanee);
+        my $stash     = stash_for($cleanee);
 
         # except parameter can be array ref or single value
         my %except = map {( $_ => 1 )} (
@@ -203,7 +225,7 @@ sub unimport {
 
 sub get_class_store {
     my ($pragma, $class) = @_;
-    my $stash = Package::Stash->new($class);
+    my $stash = stash_for($class);
     my $var = "%$STORAGE_VAR";
     $stash->add_symbol($var, {})
         unless $stash->has_symbol($var);
@@ -213,7 +235,7 @@ sub get_class_store {
 sub get_functions {
     my ($pragma, $class) = @_;
 
-    my $stash = Package::Stash->new($class);
+    my $stash = stash_for($class);
     return {
         map { $_ => $stash->get_symbol("&$_") }
             $stash->list_all_symbols('CODE')
