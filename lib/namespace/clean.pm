@@ -4,6 +4,8 @@ use warnings;
 use strict;
 
 our $VERSION = '0.25';
+$VERSION = eval $VERSION if $VERSION =~ /_/; # numify for warning-free dev releases
+
 our $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 
 use B::Hooks::EndOfScope 'on_scope_end';
