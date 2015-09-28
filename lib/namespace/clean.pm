@@ -35,43 +35,22 @@ EOS
 
 use namespace::clean::_Util qw( DEBUGGER_NEEDS_CV_RENAME DEBUGGER_NEEDS_CV_PIVOT );
 
-# Debugger fixup necessary before perl 5.15.5
-#
-# In perl 5.8.9-5.12, it assumes that sub_fullname($sub) can
-# always be used to find the CV again.
-# In perl 5.8.8 and 5.14, it assumes that the name of the glob
-# passed to entersub can be used to find the CV.
+# Built-in debugger CV-retrieval fixups necessary before perl 5.15.5:
 # since we are deleting the glob where the subroutine was originally
-# defined, those assumptions no longer hold.
+# defined, the assumptions below no longer hold.
 #
-# So in 5.8.9-5.12 we need to move it elsewhere and point the
-# CV's name to the new glob.
+# In 5.8.9 ~ 5.13.5 (inclusive) the debugger assumes that a CV can
+# always be found under sub_fullname($sub)
+# Workaround: use sub naming to properly name the sub hidden in the package's
+# deleted-stash
 #
-# In 5.8.8 and 5.14 we move it elsewhere and rename the
-# original glob by assigning the new glob back to it.
-my $sub_utils_loaded;
-my $DebuggerFixup = sub {
-  my ($f, $sub, $cleanee_stash, $deleted_stash) = @_;
-
-  if (DEBUGGER_NEEDS_CV_RENAME) {
-    #
-    # Note - both get_subname and set_subname are only compiled when CV_RENAME
-    # is true ( the 5.8.9 ~ 5.12 range ). On other perls this entire block is
-    # constant folded away, and so are the definitions in ::_Util
-    #
-    # Do not be surprised that they are missing without DEBUGGER_NEEDS_CV_RENAME
-    #
-    namespace::clean::_Util::get_subname( $sub ) eq  ( $cleanee_stash->name . "::$f" )
-      and
-    $deleted_stash->add_symbol(
-      "&$f",
-      namespace::clean::_Util::set_subname( $deleted_stash->name . "::$f", $sub ),
-    );
-  }
-  else {
-    $deleted_stash->add_symbol("&$f", $sub);
-  }
-};
+# In the rest of the range ( ... ~ 5.8.8 and 5.13.6 ~ 5.15.4 ) the debugger
+# assumes the name of the glob passed to entersub can be used to find the CV
+# Workaround: realias the original glob to the deleted-stash slot
+#
+# Can not tie constants to the current value of $^P directly,
+# as the debugger can be enabled during runtime (kinda dubious)
+#
 
 my $RemoveSubs = sub {
     my $cleanee = shift;
@@ -94,17 +73,29 @@ my $RemoveSubs = sub {
           $^P
             &&
           ref(my $globref = \$cleanee_stash->namespace->{$f}) eq 'GLOB'
+            &&
+         ( $deleted_stash ||= stash_for("namespace::clean::deleted::$cleanee") )
         ;
 
-        if ($need_debugger_fixup) {
-          # convince the Perl debugger to work
-          # see the comment on top of $DebuggerFixup
-          $DebuggerFixup->(
-            $f,
-            $sub,
-            $cleanee_stash,
-            $deleted_stash ||= stash_for("namespace::clean::deleted::$cleanee"),
+        # convince the Perl debugger to work
+        # see the comment on top
+        if ( DEBUGGER_NEEDS_CV_RENAME and $need_debugger_fixup ) {
+          #
+          # Note - both get_subname and set_subname are only compiled when CV_RENAME
+          # is true ( the 5.8.9 ~ 5.12 range ). On other perls this entire block is
+          # constant folded away, and so are the definitions in ::_Util
+          #
+          # Do not be surprised that they are missing without DEBUGGER_NEEDS_CV_RENAME
+          #
+          namespace::clean::_Util::get_subname( $sub ) eq  ( $cleanee_stash->name . "::$f" )
+            and
+          $deleted_stash->add_symbol(
+            "&$f",
+            namespace::clean::_Util::set_subname( $deleted_stash->name . "::$f", $sub ),
           );
+        }
+        elsif ( DEBUGGER_NEEDS_CV_PIVOT and $need_debugger_fixup ) {
+          $deleted_stash->add_symbol("&$f", $sub);
         }
 
         my @symbols = map {
@@ -117,10 +108,11 @@ my $RemoveSubs = sub {
 
         # if this perl needs no renaming trick we need to
         # rename the original glob after the fact
-        # (see commend of $DebuggerFixup
-        if (DEBUGGER_NEEDS_CV_PIVOT && $need_debugger_fixup) {
-          *$globref = $deleted_stash->namespace->{$f};
-        }
+        DEBUGGER_NEEDS_CV_PIVOT
+          and
+        $need_debugger_fixup
+          and
+        *$globref = $deleted_stash->namespace->{$f};
 
         $cleanee_stash->add_symbol(@$_) for @symbols;
     }
