@@ -16,11 +16,20 @@ my %RUN_DEPS = (
   'B::Hooks::EndOfScope' => '0.12',
 );
 
-# these pieces are needed if using the debugger on the perl range
-my %OPT_RUN_DEPS = ( $] > 5.008_008_9 and $] < 5.013_005_1 and can_xs() )
-  # when changing versions, also change $sn_ver and $si_ver in namespace/clean.pm
-  ? ( 'Sub::Name' => '0.04', 'Sub::Identify' => '0.04' ) : ()
-;
+# a sub-namer is needed if using the debugger on some perls
+my %OPT_RUN_DEPS = ( (
+  require 'lib/namespace/clean/_Util.pm'
+    and
+  namespace::clean::_Util::DEBUGGER_NEEDS_CV_RENAME()
+    and
+  namespace::clean::_Util::_namer_load_error()
+    and
+  can_xs()
+)
+  # when changing version, also change $sn_ver in namespace/clean/_Util.pm
+  ? ( 'Sub::Name' => '0.04' )
+  : ()
+);
 
 my %META_BITS = (
   resources => {

@@ -1,13 +1,15 @@
 use Test::More;
 
 BEGIN {
-  eval { require Sub::Name }
-    or plan skip_all => "Test requires Sub::Name";
-
-  eval { require Sub::Identify }
-    or plan skip_all => "Test requires Sub::Identify";
+  require namespace::clean;
+  if (
+    namespace::clean::_Util::DEBUGGER_NEEDS_CV_RENAME()
+      and
+    my $missing_xs = namespace::clean::_Util::_namer_load_error()
+  ) {
+    plan skip_all => $missing_xs;
+  }
 }
-
 
 BEGIN {
   # shut up the debugger

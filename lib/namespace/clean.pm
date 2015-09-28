@@ -33,14 +33,7 @@ sub stash_for (\$) {
 EOS
 }
 
-# Constant to optimise away the unused code branches
-use constant FIXUP_NEEDED => $] < 5.015_005_1;
-use constant FIXUP_RENAME_SUB => $] > 5.008_008_9 && $] < 5.013_005_1;
-{
-  no strict;
-  delete ${__PACKAGE__."::"}{FIXUP_NEEDED};
-  delete ${__PACKAGE__."::"}{FIXUP_RENAME_SUB};
-}
+use namespace::clean::_Util qw( DEBUGGER_NEEDS_CV_RENAME DEBUGGER_NEEDS_CV_PIVOT );
 
 # Debugger fixup necessary before perl 5.15.5
 #
@@ -60,29 +53,20 @@ my $sub_utils_loaded;
 my $DebuggerFixup = sub {
   my ($f, $sub, $cleanee_stash, $deleted_stash) = @_;
 
-  if (FIXUP_RENAME_SUB) {
-    if (! defined $sub_utils_loaded ) {
-      $sub_utils_loaded = do {
-
-        # when changing version also change in Makefile.PL
-        my $sn_ver = 0.04;
-        eval { require Sub::Name; Sub::Name->VERSION($sn_ver) }
-          or die "Sub::Name $sn_ver required when running under -d or equivalent: $@";
-
-        # when changing version also change in Makefile.PL
-        my $si_ver = 0.04;
-        eval { require Sub::Identify; Sub::Identify->VERSION($si_ver) }
-          or die "Sub::Identify $si_ver required when running under -d or equivalent: $@";
-
-        1;
-      } ? 1 : 0;
-    }
-
-    if ( Sub::Identify::sub_fullname($sub) eq ($cleanee_stash->name . "::$f") ) {
-      my $new_fq = $deleted_stash->name . "::$f";
-      Sub::Name::subname($new_fq, $sub);
-      $deleted_stash->add_symbol("&$f", $sub);
-    }
+  if (DEBUGGER_NEEDS_CV_RENAME) {
+    #
+    # Note - both get_subname and set_subname are only compiled when CV_RENAME
+    # is true ( the 5.8.9 ~ 5.12 range ). On other perls this entire block is
+    # constant folded away, and so are the definitions in ::_Util
+    #
+    # Do not be surprised that they are missing without DEBUGGER_NEEDS_CV_RENAME
+    #
+    namespace::clean::_Util::get_subname( $sub ) eq  ( $cleanee_stash->name . "::$f" )
+      and
+    $deleted_stash->add_symbol(
+      "&$f",
+      namespace::clean::_Util::set_subname( $deleted_stash->name . "::$f", $sub ),
+    );
   }
   else {
     $deleted_stash->add_symbol("&$f", $sub);
@@ -105,14 +89,14 @@ my $RemoveSubs = sub {
           or next SYMBOL;
 
         my $need_debugger_fixup =
-          FIXUP_NEEDED
+          ( DEBUGGER_NEEDS_CV_RENAME or DEBUGGER_NEEDS_CV_PIVOT )
             &&
           $^P
             &&
           ref(my $globref = \$cleanee_stash->namespace->{$f}) eq 'GLOB'
         ;
 
-        if (FIXUP_NEEDED && $need_debugger_fixup) {
+        if ($need_debugger_fixup) {
           # convince the Perl debugger to work
           # see the comment on top of $DebuggerFixup
           $DebuggerFixup->(
@@ -134,7 +118,7 @@ my $RemoveSubs = sub {
         # if this perl needs no renaming trick we need to
         # rename the original glob after the fact
         # (see commend of $DebuggerFixup
-        if (FIXUP_NEEDED && !FIXUP_RENAME_SUB && $need_debugger_fixup) {
+        if (DEBUGGER_NEEDS_CV_PIVOT && $need_debugger_fixup) {
           *$globref = $deleted_stash->namespace->{$f};
         }
 
