@@ -9,13 +9,18 @@ BEGIN {
   plan skip_all => "B::Hooks::EndOfScope ($INC{'B/Hooks/EndOfScope.pm'}) loaded before the test even started >.<"
     if $INC{'B/Hooks/EndOfScope.pm'};
 
+  plan skip_all => "Package::Stash ($INC{'Package/Stash.pm'}) loaded before the test even started >.<"
+    if $INC{'Package/Stash.pm'};
+
   eval { require Variable::Magic }
     or plan skip_all => "PP tests already executed";
 
   $ENV{B_HOOKS_ENDOFSCOPE_IMPLEMENTATION} = 'PP';
+  $ENV{PACKAGE_STASH_IMPLEMENTATION} = 'PP';
 }
 
 use B::Hooks::EndOfScope 0.12;
+use Package::Stash;
 
 ok(
   ($INC{'B/Hooks/EndOfScope/PP.pm'} && ! $INC{'B/Hooks/EndOfScope/XS.pm'}),
@@ -23,6 +28,14 @@ ok(
 ) || diag join "\n",
   map { sprintf '%s => %s', $_, $INC{"B/Hooks/$_"} || 'undef' }
   qw|EndOfScope.pm EndOfScope/XS.pm EndOfScope/PP.pm|
+;
+
+ok(
+  ($INC{'Package/Stash/PP.pm'} && ! $INC{'Package/Stash/XS.pm'}),
+  'PP Package::Stash loaded properly'
+) || diag join "\n",
+  map { sprintf '%s => %s', $_, $INC{"Package/$_"} || 'undef' }
+  qw|Stash.pm Stash/XS.pm Stash/PP.pm|
 ;
 
 use Config;
