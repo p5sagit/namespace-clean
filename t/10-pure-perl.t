@@ -17,7 +17,7 @@ BEGIN {
 
   $ENV{B_HOOKS_ENDOFSCOPE_IMPLEMENTATION} = 'PP';
   $ENV{PACKAGE_STASH_IMPLEMENTATION} = 'PP';
-  plan tests => 13;
+  plan tests => 14;
 }
 
 use B::Hooks::EndOfScope 0.12;

@@ -50,6 +50,13 @@ use namespace::clean::_Util qw( DEBUGGER_NEEDS_CV_RENAME DEBUGGER_NEEDS_CV_PIVOT
 # assumes the name of the glob passed to entersub can be used to find the CV
 # Workaround: realias the original glob to the deleted-stash slot
 #
+# While the errors manifest themselves inside perl5db.pl, they are caused by
+# problems inside the interpreter.  If enabled ($^P & 0x01) and existent,
+# the DB::sub sub will be called by the interpreter for any sub call rather
+# that call the sub directly.  It is provided the real sub to call in $DB::sub,
+# but the value given has the issues described above.  We only have to enable
+# the workaround if DB::sub will be used.
+#
 # Can not tie constants to the current value of $^P directly,
 # as the debugger can be enabled during runtime (kinda dubious)
 #
@@ -72,7 +79,9 @@ my $RemoveSubs = sub {
         my $need_debugger_fixup =
           ( DEBUGGER_NEEDS_CV_RENAME or DEBUGGER_NEEDS_CV_PIVOT )
             &&
-          $^P
+          $^P & 0x01
+            &&
+          defined &DB::sub
             &&
           ref(my $globref = \$cleanee_stash->namespace->{$f}) eq 'GLOB'
             &&

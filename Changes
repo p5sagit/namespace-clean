@@ -1,4 +1,6 @@
 
+        - Ensure the debugger workarounds are applied only when
+          DB::sub is actively used (they are superfluous otherwise)
         - Work around P5#72210, resulting in fails on 5.8.8 -Duselongdouble
         - Fix incorrect name in META (RT#107813)
 
