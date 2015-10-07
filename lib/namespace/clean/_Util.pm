@@ -31,29 +31,42 @@ BEGIN {
   my( $sub_name_loaded, $sub_util_loaded );
 
   sub _namer_load_error {
-    my $err = '';
+    return '' if $sub_util_loaded or $sub_name_loaded;
 
-    return $err if $sub_util_loaded or $sub_name_loaded;
-
-    local $@;
-
-    # prefer Sub::Name to Sub::Util
-    # this is rather arbitrary but remember this code exists only
-    # on perls 5.8.9 ~ 5.13.5
+    # if S::N is loaded first *and* so is B - then go with that, otherwise
+    # prefer Sub::Util as S::U will provide a faster get_subname and will
+    # not need further require() calls
+    # this is rather arbitrary but remember this code exists only perls
+    # between 5.8.9 ~ 5.13.5
 
     # when changing version also change in Makefile.PL
     my $sn_ver = 0.04;
 
-    eval {
-      require Sub::Name;
-      Sub::Name->VERSION($sn_ver);
-      $sub_name_loaded = 1;
-    }
+    local $@;
+    my $err = '';
+
+    (
+      ! (
+        $INC{"B.pm"}
+          and
+        $INC{"Sub/Name.pm"}
+          and
+        eval { Sub::Name->VERSION($sn_ver) }
+      )
+        and
+      eval { require Sub::Util }
+        and
+      # see https://github.com/moose/Moo/commit/dafa5118
+      defined &Sub::Util::set_subname
+        and
+      $sub_util_loaded = 1
+    )
       or
-    eval {
-      require Sub::Util;
-      $sub_util_loaded = 1;
-    }
+    (
+      eval { require Sub::Name and Sub::Name->VERSION($sn_ver) }
+        and
+      $sub_name_loaded = 1
+    )
       or
     $err = "When running under -d on this perl $], namespace::clean requires either Sub::Name $sn_ver or Sub::Util to be installed"
     ;
