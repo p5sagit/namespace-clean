@@ -3,7 +3,7 @@ package namespace::clean;
 use warnings;
 use strict;
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 $VERSION = eval $VERSION if $VERSION =~ /_/; # numify for warning-free dev releases
 
 our $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
