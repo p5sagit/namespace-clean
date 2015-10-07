@@ -1,6 +1,8 @@
         - Exclusively use Package::Stash::PP on perls < 5.8.7 until a fixed
           Package::Stash::XS ships - breakage keeps getting reintroduced
           ( RT#107343, RT#74151 )
+        - Explicitly document the late runtime binding of `sort SUBNAME ...`
+          ( RT#101247 )
         - No longer rely on Sub::Identify - either use Sub::Util or B
           ( should solve RT#96945 )
 

@@ -287,6 +287,30 @@ be a module exporting an C<import> method along with some functions:
 If you just want to C<-except> a single sub, you can pass it directly.
 For more than one value you have to use an array reference.
 
+=head3 Late binding caveat
+
+Note that the L<technique used by this module|/IMPLEMENTATION DETAILS> relies
+on perl having resolved all names to actual code references during the
+compilation of a scope. While this is almost always what the interpreter does,
+there are some exceptions, notably the L<sort SUBNAME|perlfunc/sort> style of
+the C<sort> built-in invocation. The following example will not work, because
+C<sort> does not try to resolve the function name to an actual code reference
+until B<runtime>.
+
+ use MyApp::Utils 'my_sorter';
+ use namespace::clean;
+
+ my @sorted = sort my_sorter @list;
+
+You need to work around this by forcing a compile-time resolution like so:
+
+ use MyApp::Utils 'sorter';
+ use namespace::clean;
+
+ my $my_sorter_cref = \&sorter;
+
+ my @sorted = sort $my_sorter_cref @list;
+
 =head2 Explicitly removing functions when your scope is compiled
 
 It is also possible to explicitly tell C<namespace::clean> what packages
