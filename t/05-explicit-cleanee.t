@@ -30,7 +30,7 @@ SKIP: {
 
   skip "This part of the test segfaults perl $] with both tie() and B::H::EOS."
     . ' Actual code (e.g. DBIx::Class) works fine so did not investigate further',
-    2000 if $] < 5.008003;
+    2000 if "$]" < 5.008003;
 
   local @INC = @INC;
   my @code;

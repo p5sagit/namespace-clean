@@ -16,7 +16,7 @@ use B::Hooks::EndOfScope 'on_scope_end';
 BEGIN {
   my $provider;
 
-  if ( $] < 5.008007 ) {
+  if ( "$]" < 5.008007 ) {
     require Package::Stash::PP;
     $provider = 'Package::Stash::PP';
   }

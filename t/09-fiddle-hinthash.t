@@ -42,7 +42,7 @@ use Test::More 0.88;
         'Tied hinthash values not present in extended caller() on perls older than 5.10'
        .', regardless of mode (PP or XS)',
         1
-      ) if ($] < 5.010_000);
+      ) if ("$]" < 5.010_000);
       package DB;
       Test::More::is( ( (caller(0))[10] || {} )->{foo}, 'bar', 'hinthash values visible in caller' );
     }

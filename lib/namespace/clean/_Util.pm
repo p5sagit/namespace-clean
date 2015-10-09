@@ -15,8 +15,8 @@ use strict;
 use base 'Exporter';
 our @EXPORT_OK = qw( DEBUGGER_NEEDS_CV_RENAME DEBUGGER_NEEDS_CV_PIVOT );
 
-use constant DEBUGGER_NEEDS_CV_RENAME => ( ( $] > 5.008_008 ) and ( $] < 5.013_006 ) );
-use constant DEBUGGER_NEEDS_CV_PIVOT => ( ( ! DEBUGGER_NEEDS_CV_RENAME ) and ( $] < 5.015_005 ) );
+use constant DEBUGGER_NEEDS_CV_RENAME => ( ( "$]" > 5.008_008 ) and ( "$]" < 5.013_006 ) );
+use constant DEBUGGER_NEEDS_CV_PIVOT => ( ( ! DEBUGGER_NEEDS_CV_RENAME ) and ( "$]" < 5.015_005 ) );
 
 # FIXME - ideally this needs to be provided by some abstraction lib
 # but we don't have that yet
