@@ -9,6 +9,9 @@ BEGIN {
   ) {
     plan skip_all => $missing_xs;
   }
+  else {
+    plan tests => 4;
+  }
 }
 
 BEGIN {
@@ -20,7 +23,7 @@ BEGIN {
 
 #line 1
 #!/usr/bin/perl -d
-#line 10
+#line 27
 
 }
 
@@ -42,5 +45,3 @@ ok( !Foo->can("foo"), "foo cleaned up" );
 ok( !Foo->can("baz"), "baz cleaned up" );
 
 Foo->bar();
-
-done_testing;

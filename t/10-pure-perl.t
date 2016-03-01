@@ -17,6 +17,7 @@ BEGIN {
 
   $ENV{B_HOOKS_ENDOFSCOPE_IMPLEMENTATION} = 'PP';
   $ENV{PACKAGE_STASH_IMPLEMENTATION} = 'PP';
+  plan tests => 13;
 }
 
 use B::Hooks::EndOfScope 0.12;
@@ -69,5 +70,3 @@ for my $fn ( bsd_glob("t/*.t") ) {
   wait;
   ok (! $?, "Exit $? from: @cmd");
 }
-
-done_testing;

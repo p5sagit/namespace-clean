@@ -31,7 +31,7 @@ my %META = (
     },
     test => {
       requires => {
-        'Test::More' => '0.88',
+        'Test::More' => '0.47',
       }
     },
   },
