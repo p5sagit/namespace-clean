@@ -3,7 +3,7 @@ use warnings;
 use 5.008001;
 
 my %META = (
-  name => 'namespace::clean',
+  name => 'namespace-clean',
   license => 'perl_5',
 
   abstract => 'Keep imports and functions out of your namespace',
