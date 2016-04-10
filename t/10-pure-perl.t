@@ -41,6 +41,7 @@ ok(
 use Config;
 use IPC::Open2 qw(open2);
 use File::Glob 'bsd_glob';
+use Cwd 'abs_path';
 
 # for the $^X-es
 $ENV{PERL5LIB} = join ($Config{path_sep}, @INC);
@@ -48,10 +49,11 @@ $ENV{PATH} = '';
 
 
 # rerun the tests under the assumption of pure-perl
-my $this_file = quotemeta(__FILE__);
+my $this_file = abs_path(__FILE__);
 
 for my $fn ( bsd_glob("t/*.t") ) {
-  next if $fn =~ /${this_file}$/;
+
+  next if abs_path($fn) eq $this_file;
 
   my @cmd = map { $_ =~ /(.+)/ } ($^X, $fn);
 
