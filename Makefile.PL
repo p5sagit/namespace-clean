@@ -19,7 +19,6 @@ my %META = (
     configure => {
       requires => {
         'ExtUtils::MakeMaker'   => 0,
-        'ExtUtils::CBuilder'    => 0.27,
       }
     },
     runtime => {
@@ -59,12 +58,86 @@ my %MM_ARGS = ( (
     and
   namespace::clean::_Util::_namer_load_error()
     and
-  can_xs()
+  usable_compiler_present()
 )
   # when changing version, also change $sn_ver in namespace/clean/_Util.pm
   ? ( PREREQ_PM => { 'Sub::Name' => '0.04' } )
   : ()
 );
+
+## XS-checking BOILERPLATE ###################################################
+sub usable_compiler_present {
+  return 0 if parse_args()->{PUREPERL_ONLY};
+
+  my $ucp;
+
+  local $@;
+  eval {
+    # poor man's inc::latest
+    my $euhc_fn = 'ExtUtils/HasCompiler.pm';
+    my $euhc_found_in_INC_dir;
+
+    ( ($euhc_found_in_INC_dir) = grep {
+      not length ref $_
+        and
+      -f "$_/$euhc_fn"
+        and
+      -r "$_/$euhc_fn"
+    } @INC )
+      and
+    (
+      MM->parse_version("$euhc_found_in_INC_dir/$euhc_fn")
+        >
+      MM->parse_version("inc/$euhc_fn")
+    )
+      and
+    eval { require ExtUtils::HasCompiler };
+
+    unless ( $INC{'ExtUtils/HasCompiler.pm'} ) {
+      local @INC = ( "inc", @INC );
+      require ExtUtils::HasCompiler;
+    }
+
+    $ucp = ExtUtils::HasCompiler::can_compile_loadable_object(quiet => 1)
+      ? 1
+      : 0
+    ;
+
+    1;
+  };
+
+  if( my $used_fn = $INC{'ExtUtils/HasCompiler.pm'} ) {
+    printf
+      "ExtUtils::HasCompiler::can_compile_loadable_object() v%s (loaded from %s) returned: %s\n",
+      ExtUtils::HasCompiler->VERSION,
+      $used_fn,
+      ( defined($ucp) ? $ucp : "UNKNOWN" ),
+    ;
+  }
+  else {
+    print "Something went wrong when trying to load/use ExtUtils::HasCompiler:\n$@\n\n";
+  }
+
+  $ucp;
+}
+
+
+# FIXME - this has been cargo-culted from
+# https://metacpan.org/source/HAARG/strictures-2.000002/Makefile.PL
+# There likely will be better ways to handle %ENV and @ARGV directly within
+# EU::HC in the future
+sub parse_args {
+  # copied from EUMM
+  require ExtUtils::MakeMaker;
+  require Text::ParseWords;
+  ExtUtils::MakeMaker::parse_args(
+    my $tmp = {},
+    Text::ParseWords::shellwords($ENV{PERL_MM_OPT} || ''),
+    @ARGV,
+  );
+  return $tmp->{ARGS} || {};
+}
+## END XS-checking BOILERPLATE ###############################################
 
 
 ## BOILERPLATE ###############################################################
@@ -108,106 +181,3 @@ delete $MM_ARGS{CONFIGURE_REQUIRES}
 
 ExtUtils::MakeMaker::WriteMakefile(%MM_ARGS);
 ## END BOILERPLATE ###########################################################
-
-
-# FIXME
-# Need to replace with EU::HC, but too many changes for this release already
-###########################################
-# can we locate a (the) C compiler
-sub can_cc {
-  my @chunks = split(/ /, $Config::Config{cc}) or return;
-
-  # $Config{cc} may contain args; try to find out the program part
-  while (@chunks) {
-    return can_run("@chunks") || (pop(@chunks), next);
-  }
-
-  return;
-}
-
-# check if we can run some command
-sub can_run {
-  my ($cmd) = @_;
-
-  return $cmd if -x $cmd;
-  if (my $found_cmd = MM->maybe_command($cmd)) {
-    return $found_cmd;
-  }
-
-  require File::Spec;
-  for my $dir ((split /$Config::Config{path_sep}/, $ENV{PATH}), '.') {
-    next if $dir eq '';
-    my $abs = File::Spec->catfile($dir, $cmd);
-    return $abs if (-x $abs or $abs = MM->maybe_command($abs));
-  }
-
-  return;
-}
-
-# Can our C compiler environment build XS files
-sub can_xs {
-  # Do we have the configure_requires checker?
-  local $@;
-  eval "require ExtUtils::CBuilder; ExtUtils::CBuilder->VERSION(0.27)";
-  if ( $@ ) {
-    # They don't obey configure_requires, so it is
-    # someone old and delicate. Try to avoid hurting
-    # them by falling back to an older simpler test.
-    return can_cc();
-  }
-
-  # Do we have a working C compiler
-  my $builder = ExtUtils::CBuilder->new(
-    quiet => 1,
-  );
-  unless ( $builder->have_compiler ) {
-    # No working C compiler
-    return 0;
-  }
-
-  # Write a C file representative of what XS becomes
-  require File::Temp;
-  my ( $FH, $tmpfile ) = File::Temp::tempfile(
-    "compilexs-XXXXX",
-    SUFFIX => '.c',
-  );
-  binmode $FH;
-  print $FH <<'END_C';
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
-int main(int argc, char **argv) {
-    return 0;
-}
-
-int boot_sanexs() {
-    return 1;
-}
-
-END_C
-  close $FH;
-
-  # Can the C compiler access the same headers XS does
-  my @libs   = ();
-  my $object = undef;
-  eval {
-    local $^W = 0;
-    $object = $builder->compile(
-      source => $tmpfile,
-    );
-    @libs = $builder->link(
-      objects     => $object,
-      module_name => 'sanexs',
-    );
-  };
-  my $result = $@ ? 0 : 1;
-
-  # Clean up all the build files
-  foreach ( $tmpfile, $object, @libs ) {
-    next unless defined $_;
-    1 while unlink;
-  }
-
-  return $result;
-}
