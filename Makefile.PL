@@ -42,7 +42,7 @@ my %META = (
     repository => {
       type => 'git',
       url => 'git://git.shadowcat.co.uk/p5sagit/namespace-clean.git',
-      web => 'http://git.shadowcat.co.uk/gitweb/gitweb.cgi?p=p5sagit/namespace-clean.git',
+      web => 'https://github.com/p5sagit/namespace-clean',
     },
     bugtracker => {
       mailto => 'bug-namespace-clean@rt.cpan.org',
