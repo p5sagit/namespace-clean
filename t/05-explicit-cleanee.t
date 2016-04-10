@@ -24,12 +24,7 @@ is(CleaneeTarget->summary->[ $_ ], $values[ $_ ], sprintf('testing sub in cleane
 
 
 # some torture
-SKIP: {
-
-  skip "This part of the test segfaults perl $] with both tie() and B::H::EOS."
-    . ' Actual code (e.g. DBIx::Class) works fine so did not investigate further',
-    2000 if "$]" < 5.008003;
-
+{
   local @INC = @INC;
   my @code;
   unshift @INC, sub {
@@ -55,7 +50,7 @@ SKIP: {
   for (1..1000) {
     my $pkg = "CleaneeTarget::No${_}";
 
-    my @val = require "CleaneeTarget/No${_}.pm";
+    require "CleaneeTarget/No${_}.pm";
 
     ok !$pkg->can('x_foo'),    'explicitely removed disappeared';
     ok  $pkg->can('x_bar'),    'not in explicit removal and still there';
