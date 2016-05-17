@@ -52,7 +52,11 @@ my %META = (
 
 my %MM_ARGS = ( (
   # a sub-namer is needed if using the debugger on some perls
-  require 'lib/namespace/clean/_Util.pm'
+  do {
+    # sigh... so much unmitigated stupidity on #p5p these days...
+    local @INC = ('lib', @INC);
+    require namespace::clean::_Util;
+  }
     and
   namespace::clean::_Util::DEBUGGER_NEEDS_CV_RENAME()
     and
