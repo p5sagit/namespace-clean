@@ -309,10 +309,10 @@ until B<runtime>.
 
 You need to work around this by forcing a compile-time resolution like so:
 
- use MyApp::Utils 'sorter';
+ use MyApp::Utils 'my_sorter';
  use namespace::clean;
 
- my $my_sorter_cref = \&sorter;
+ my $my_sorter_cref = \&my_sorter;
 
  my @sorted = sort $my_sorter_cref @list;
 
