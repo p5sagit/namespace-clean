@@ -1,4 +1,4 @@
-
+0.27  2016-05-18 02:24 (UTC)
         - Allow packages to be cleaned multiple times
         - Ensure the debugger workarounds are applied only when
           DB::sub is actively used (they are superfluous otherwise)
