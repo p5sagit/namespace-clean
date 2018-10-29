@@ -9,6 +9,9 @@ BEGIN {
   ) {
     plan skip_all => $missing_xs;
   }
+  elsif ( defined $ENV{PERL5DB} ) {
+    plan skip_all => "custom ENV{PERL5DB} set.";
+  }
   else {
     plan tests => 4;
   }
