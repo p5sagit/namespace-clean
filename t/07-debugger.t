@@ -16,14 +16,17 @@ BEGIN {
 
 BEGIN {
   # shut up the debugger
-  $ENV{PERLDB_OPTS} = 'NonStop';
+  delete $ENV{$_} for grep /^PERL5?DB/, keys %ENV;
+  delete $ENV{LOGDIR};
+  $ENV{HOME} = '.';
+  $ENV{PERLDB_OPTS} = 'NonStop noTTY';
 }
 
 BEGIN {
 
 #line 1
 #!/usr/bin/perl -d
-#line 27
+#line 30
 
 }
 
