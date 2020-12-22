@@ -23,7 +23,6 @@ my %META = (
     },
     runtime => {
       requires => {
-        'Package::Stash' => '0.23',
         'B::Hooks::EndOfScope' => '0.12',
         'perl' => '5.008001',
       },

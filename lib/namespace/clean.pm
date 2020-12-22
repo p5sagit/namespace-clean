@@ -10,31 +10,6 @@ our $STORAGE_VAR = '__NAMESPACE_CLEAN_STORAGE';
 
 use B::Hooks::EndOfScope 'on_scope_end';
 
-# FIXME This is a crock of shit, needs to go away
-# currently here to work around https://rt.cpan.org/Ticket/Display.html?id=74151
-# kill with fire when PS::XS is *finally* fixed
-BEGIN {
-  my $provider;
-
-  if ( "$]" < 5.008007 ) {
-    require Package::Stash::PP;
-    $provider = 'Package::Stash::PP';
-  }
-  else {
-    require Package::Stash;
-    $provider = 'Package::Stash';
-  }
-  eval <<"EOS" or die $@;
-
-sub stash_for (\$) {
-  $provider->new(\$_[0]);
-}
-
-1;
-
-EOS
-}
-
 use namespace::clean::_Util qw( DEBUGGER_NEEDS_CV_RENAME DEBUGGER_NEEDS_CV_PIVOT );
 
 # Built-in debugger CV-retrieval fixups necessary before perl 5.15.5:
@@ -64,17 +39,21 @@ use namespace::clean::_Util qw( DEBUGGER_NEEDS_CV_RENAME DEBUGGER_NEEDS_CV_PIVOT
 my $RemoveSubs = sub {
     my $cleanee = shift;
     my $store   = shift;
-    my $cleanee_stash = stash_for($cleanee);
+    my $cleanee_stash = \%{"${cleanee}::"};
+    my $deleted_stash_name;
     my $deleted_stash;
 
+    no strict 'refs';
   SYMBOL:
     for my $f (@_) {
 
         # ignore already removed symbols
         next SYMBOL if $store->{exclude}{ $f };
 
-        my $sub = $cleanee_stash->get_symbol("&$f")
-          or next SYMBOL;
+        next SYMBOL
+          unless exists &{"${cleanee}::$f"};
+
+        my $sub = \&{"${cleanee}::$f"};
 
         my $need_debugger_fixup =
           ( DEBUGGER_NEEDS_CV_RENAME or DEBUGGER_NEEDS_CV_PIVOT )
@@ -83,9 +62,11 @@ my $RemoveSubs = sub {
             &&
           defined &DB::sub
             &&
-          ref(my $globref = \$cleanee_stash->namespace->{$f}) eq 'GLOB'
+          ref(my $globref = \$cleanee_stash->{$f}) eq 'GLOB'
             &&
-         ( $deleted_stash ||= stash_for("namespace::clean::deleted::$cleanee") )
+          ( $deleted_stash_name ||= "namespace::clean::deleted::$cleanee" )
+            &&
+          ( $deleted_stash ||= \%{"${deleted_stash_name}::"} )
         ;
 
         # convince the Perl debugger to work
@@ -98,24 +79,24 @@ my $RemoveSubs = sub {
           #
           # Do not be surprised that they are missing without DEBUGGER_NEEDS_CV_RENAME
           #
-          namespace::clean::_Util::get_subname( $sub ) eq  ( $cleanee_stash->name . "::$f" )
+          namespace::clean::_Util::get_subname( $sub ) eq  ( $cleanee . "::$f" )
             and
-          $deleted_stash->add_symbol(
-            "&$f",
-            namespace::clean::_Util::set_subname( $deleted_stash->name . "::$f", $sub ),
-          );
+          *{"${deleted_stash_name}::$f"} =
+            namespace::clean::_Util::set_subname( $deleted_stash_name . "::$f", $sub );
         }
         elsif ( DEBUGGER_NEEDS_CV_PIVOT and $need_debugger_fixup ) {
-          $deleted_stash->add_symbol("&$f", $sub);
+          *{"${deleted_stash_name}::$f"} = $sub;
         }
 
-        my @symbols = map {
-            my $name = $_ . $f;
-            my $def = $cleanee_stash->get_symbol($name);
-            defined($def) ? [$name, $def] : ()
-        } '$', '@', '%', '';
 
-        $cleanee_stash->remove_glob($f);
+        my @symbols = do {
+            my $glob = *{"${cleanee}::$f"};
+            grep defined,
+            map *{$glob}{$_},
+            qw(SCALAR ARRAY HASH IO);
+        };
+
+        delete $cleanee_stash->{$f};
 
         # if this perl needs no renaming trick we need to
         # rename the original glob after the fact
@@ -123,9 +104,9 @@ my $RemoveSubs = sub {
           and
         $need_debugger_fixup
           and
-        *$globref = $deleted_stash->namespace->{$f};
+        *$globref = $deleted_stash->{$f};
 
-        $cleanee_stash->add_symbol(@$_) for @symbols;
+        *{"${cleanee}::$f"} = $_ for @symbols;
     }
 };
 
@@ -164,7 +145,6 @@ sub import {
         # calling class, all current functions and our storage
         my $functions = $pragma->get_functions($cleanee);
         my $store     = $pragma->get_class_store($cleanee);
-        my $stash     = stash_for($cleanee);
 
         # except parameter can be array ref or single value
         my %except = map {( $_ => 1 )} (
@@ -176,7 +156,7 @@ sub import {
         # register symbols for removal, if they have a CODE entry
         for my $f (keys %$functions) {
             next if     $except{ $f };
-            next unless $stash->has_symbol("&$f");
+            next unless exists &{"${cleanee}::$f"};
             $store->{remove}{ $f } = 1;
         }
 
@@ -208,20 +188,18 @@ sub unimport {
 
 sub get_class_store {
     my ($pragma, $class) = @_;
-    my $stash = stash_for($class);
-    my $var = "%$STORAGE_VAR";
-    $stash->add_symbol($var, {})
-        unless $stash->has_symbol($var);
-    return $stash->get_symbol($var);
+    no strict 'refs';
+    return \%{"${class}::${STORAGE_VAR}"};
 }
 
 sub get_functions {
     my ($pragma, $class) = @_;
 
-    my $stash = stash_for($class);
+    no strict 'refs';
     return {
-        map { $_ => $stash->get_symbol("&$_") }
-            $stash->list_all_symbols('CODE')
+        map +($_ => \&{"${class}::$_"}),
+        grep exists &{"${class}::$_"},
+        sort keys %{"${class}::"}
     };
 }
 
