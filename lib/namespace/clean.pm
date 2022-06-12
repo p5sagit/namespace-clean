@@ -37,6 +37,7 @@ use namespace::clean::_Util qw( DEBUGGER_NEEDS_CV_RENAME DEBUGGER_NEEDS_CV_PIVOT
 #
 
 my $RemoveSubs = sub {
+    no strict 'refs';
     my $cleanee = shift;
     my $store   = shift;
     my $cleanee_stash = \%{"${cleanee}::"};
